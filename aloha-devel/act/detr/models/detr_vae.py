@@ -147,12 +147,13 @@ class DETRVAE(nn.Module):
             # print("depth_encoder:", self.depth_encoder(image_test))
             features = features[0]  # take the last layer feature
             src_pos = src_pos[0]
+            print(f"feature shape for cam {cam_name}: {features.shape}, src_pos shape: {src_pos.shape}")
             if self.depth_backbones is not None and depth_image is not None:
                 features_depth = self.depth_backbones[cam_id](depth_image[:, cam_id].unsqueeze(dim=1))
                 all_cam_features.append(self.input_proj(torch.cat([features, features_depth], axis=1)))
             else:
                 all_cam_features.append(self.input_proj(features))
-            all_cam_pos.append(src_pos)
+            all_cam_pos.append(src_pos) 
         # proprioception features
         robot_state_input = self.input_proj_robot_state(robot_state)
         robot_state_input = torch.unsqueeze(robot_state_input, axis=0)
@@ -160,6 +161,8 @@ class DETRVAE(nn.Module):
         # fold camera dimension into width dimension
         src = torch.cat(all_cam_features, axis=3)
         src_pos = torch.cat(all_cam_pos, axis=3)
+        print(f"all feature shape: {src.shape}, all src_pos shape: {src_pos.shape}")
+        print(f"query weight shape: {self.query_embed.weight.shape}, robot pos shape: {self.robot_state_pos.weight.shape}")
         hs = self.transformer(self.query_embed.weight,
                               src, src_pos, None,
                               robot_state_input, self.robot_state_pos.weight,

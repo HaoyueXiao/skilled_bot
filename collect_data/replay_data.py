@@ -84,13 +84,13 @@ def main(args):
     twist_msg = Twist()
 
     rate = rospy.Rate(args.frame_rate)
+
     
     qposs, qvels, efforts, actions, base_actions, image_dicts = load_hdf5(os.path.join(dataset_dir, task_name), dataset_name)
     
-    
     if args.only_pub_master:
         last_action = [-0.0057,-0.031, -0.0122, -0.032, 0.0099, 0.0179, 0.2279, 0.0616, 0.0021, 0.0475, -0.1013, 0.1097, 0.0872, 0.2279]
-        rate = rospy.Rate(100)
+        rate = rospy.Rate(200)
         for action in actions:
             if(rospy.is_shutdown()):
                     break
@@ -136,11 +136,11 @@ def main(args):
             joint_state_msg.position = actions[i][7:]
             master_arm_right_publisher.publish(joint_state_msg)
 
-            joint_state_msg.position = qposs[i][:7]
-            puppet_arm_left_publisher.publish(joint_state_msg)
+            # joint_state_msg.position = qposs[i][:7]
+            # puppet_arm_left_publisher.publish(joint_state_msg)
 
-            joint_state_msg.position = qposs[i][7:]
-            puppet_arm_right_publisher.publish(joint_state_msg)
+            # joint_state_msg.position = qposs[i][7:]
+            # puppet_arm_right_publisher.publish(joint_state_msg)
 
             img_front_publisher.publish(bridge.cv2_to_imgmsg(image0, "bgr8"))
             img_left_publisher.publish(bridge.cv2_to_imgmsg(image1, "bgr8"))
@@ -158,17 +158,17 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_dir', action='store', type=str, help='Dataset dir.', required=True)
+    parser.add_argument('--dataset_dir', default = './data/pouring', action='store', type=str, help='Dataset dir.', required=True)
     parser.add_argument('--task_name', action='store', type=str, help='Task name.',
-                        default="aloha_mobile_dummy", required=False)
+                        default="pouring", required=False)
 
-    parser.add_argument('--episode_idx', action='store', type=int, help='Episode index.',default=0, required=False)
+    parser.add_argument('--episode_idx', action='store', type=int, help='Episode index.',default=28, required=False)
     
     parser.add_argument('--camera_names', action='store', type=str, help='camera_names',
                         default=['cam_high', 'cam_left_wrist', 'cam_right_wrist'], required=False)
     
     parser.add_argument('--img_front_topic', action='store', type=str, help='img_front_topic',
-                        default='/camera_f/color/image_raw', required=False)
+                        default='/zed/zed_node/rgb_raw/image_raw_color', required=False)
     parser.add_argument('--img_left_topic', action='store', type=str, help='img_left_topic',
                         default='/camera_l/color/image_raw', required=False)
     parser.add_argument('--img_right_topic', action='store', type=str, help='img_right_topic',
@@ -192,7 +192,7 @@ if __name__ == '__main__':
     parser.add_argument('--frame_rate', action='store', type=int, help='frame_rate',
                         default=30, required=False)
     
-    parser.add_argument('--only_pub_master', action='store_true', help='only_pub_master',required=False)
+    parser.add_argument('--only_pub_master', action='store_true', help='only_pub_master',default = False, required=False)
     
     
 

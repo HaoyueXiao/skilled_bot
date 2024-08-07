@@ -1,0 +1,8 @@
+prefix=/home/jianrenw/Documents/skilled/cobot_magic/camera_ws/install
+
+Name: audio_play
+Description: Description of audio_play
+Version: 0.3.17
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

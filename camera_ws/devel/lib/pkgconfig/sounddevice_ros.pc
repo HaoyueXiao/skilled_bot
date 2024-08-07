@@ -1,0 +1,8 @@
+prefix=/home/jianrenw/Documents/skilled/cobot_magic/camera_ws/devel
+
+Name: sounddevice_ros
+Description: Description of sounddevice_ros
+Version: 1.0.0
+Cflags: -I/home/jianrenw/Documents/skilled/cobot_magic/camera_ws/devel/include
+Libs: -L${prefix}/lib 
+Requires: rospy message_runtime std_msgs

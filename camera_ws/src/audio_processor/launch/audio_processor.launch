@@ -1,0 +1,3 @@
+<launch>
+    <node name="audio_processor_node" pkg="audio_processor" type="audio_processor_node.py" output="screen"/>
+</launch>

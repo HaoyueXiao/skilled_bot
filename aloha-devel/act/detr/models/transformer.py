@@ -56,7 +56,7 @@ class Transformer(nn.Module):
     def forward(self, query_embed,
                 src, pos, is_pad,
                 robot_state_input, robot_state_pos=None,
-                latent_input=None, latent_pos=None):
+                latent_input=None, latent_pos=None, audio_src = None, audio_pos = None):
         # TODO flatten only when input has H and W
         if len(src.shape) == 4: # has H and W
             # flatten NxCxHxW to HWxNxC
@@ -67,12 +67,15 @@ class Transformer(nn.Module):
             robot_state_is_pad = torch.full((robot_state_input.shape[1], robot_state_input.shape[0]), False).to(src.device)  # False: not a padding
             pos = pos.flatten(2).permute(2, 0, 1).repeat(1, bs, 1)
             query_embed = query_embed.unsqueeze(1).repeat(1, bs, 1)
+            # added: for audio:
+            audio_pos = audio_pos.unsqueeze(1).repeat(1, bs, 1) # (2, B, dim)
+            audio_is_pad = torch.full((audio_src.shape[1], audio_src.shape[0]), False).to(src.device)
             # mask = mask.flatten(1)
             robot_state_pos = robot_state_pos.unsqueeze(1).repeat(1, bs, 1)  # seq, bs, dim
             latent_pos = latent_pos.unsqueeze(1).repeat(1, bs, 1)  # seq, bs, dim
-            pos = torch.cat([latent_pos, pos, robot_state_pos], axis=0)
-            src = torch.cat([latent_input, src, robot_state_input], axis=0)
-            is_pad = torch.cat([latent_is_pad, src_is_pad, robot_state_is_pad], axis=1)
+            pos = torch.cat([latent_pos, pos, robot_state_pos, audio_pos], axis=0)
+            src = torch.cat([latent_input, src, robot_state_input, audio_src], axis=0)
+            is_pad = torch.cat([latent_is_pad, src_is_pad, robot_state_is_pad, audio_is_pad], axis=1)
         else:
             assert len(src.shape) == 3
             # flatten NxHWxC to HWxNxC

@@ -1,0 +1,4 @@
+<launch>
+  <rosparam file="$(find contact_mic_capture)/config/audio_capture.yaml" command="load"/>
+  <node pkg="audio_capture" type="audio_capture_node" name="audio_capture" output="screen"/>
+</launch>

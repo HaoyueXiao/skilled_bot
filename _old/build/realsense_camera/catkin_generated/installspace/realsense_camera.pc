@@ -1,0 +1,8 @@
+prefix=/home/jianrenw/Documents/skilled/cobot_magic/camera_ws/install
+
+Name: realsense_camera
+Description: Description of realsense_camera
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

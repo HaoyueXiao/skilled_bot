@@ -10,9 +10,9 @@ import os
 import pickle
 import argparse
 from einops import rearrange
-
+import cv2
 from utils import compute_dict_mean, set_seed, detach_dict # helper functions
-from policy import ACTPolicy, CNNMLPPolicy, DiffusionPolicy
+from policy import ACTPolicy, CNNMLPPolicy
 import collections
 from collections import deque
 
@@ -45,7 +45,7 @@ def actions_interpolation(args, pre_action, actions, stats):
     post_process = lambda a: a * stats['qpos_std'] + stats['qpos_mean']
     result = [pre_action]
     post_action = post_process(actions[0])
-    # print("pre_action:", pre_action[7:])
+    # print("pre_action:", pre_action[7:]) 
     # print("actions_interpolation1:", post_action[:, 7:])
     max_diff_index = 0
     max_diff = -1
@@ -155,8 +155,6 @@ def make_policy(policy_class, policy_config):
         policy = ACTPolicy(policy_config)
     elif policy_class == 'CNNMLP':
         policy = CNNMLPPolicy(policy_config)
-    elif policy_class == 'Diffusion':
-        policy = DiffusionPolicy(policy_config)
     else:
         raise NotImplementedError
     return policy
@@ -310,6 +308,7 @@ def model_inference(args, config, ros_operator, save_episode=True):
     action = None
     # 推理
     with torch.inference_mode():
+        print(f"Inference Started")
         while True and not rospy.is_shutdown():
             # 每个回合的步数
             t = 0
@@ -357,6 +356,7 @@ def model_inference(args, config, ros_operator, save_episode=True):
                 left_action = action[:7]  # 取7维度
                 right_action = action[7:14]
                 ros_operator.puppet_arm_publish(left_action, right_action)  # puppet_arm_publish_continuous_thread
+                #ros_operator.puppet_arm_publish_continuous_thread(left_action, right_action)
                 if args.use_robot_base:
                     vel_action = action[14:16]
                     ros_operator.robot_base_publish(vel_action)
@@ -522,6 +522,7 @@ class RosOperator:
     def get_frame(self):
         if len(self.img_left_deque) == 0 or len(self.img_right_deque) == 0 or len(self.img_front_deque) == 0 or \
                 (self.args.use_depth_image and (len(self.img_left_depth_deque) == 0 or len(self.img_right_depth_deque) == 0 or len(self.img_front_depth_deque) == 0)):
+            print("Image Deque is Empty")
             return False
         if self.args.use_depth_image:
             frame_time = min([self.img_left_deque[-1].header.stamp.to_sec(), self.img_right_deque[-1].header.stamp.to_sec(), self.img_front_deque[-1].header.stamp.to_sec(),
@@ -530,10 +531,13 @@ class RosOperator:
             frame_time = min([self.img_left_deque[-1].header.stamp.to_sec(), self.img_right_deque[-1].header.stamp.to_sec(), self.img_front_deque[-1].header.stamp.to_sec()])
 
         if len(self.img_left_deque) == 0 or self.img_left_deque[-1].header.stamp.to_sec() < frame_time:
+            print("Image Left Failed to Sync")
             return False
         if len(self.img_right_deque) == 0 or self.img_right_deque[-1].header.stamp.to_sec() < frame_time:
+            print("Image Right Failed to Sync")
             return False
         if len(self.img_front_deque) == 0 or self.img_front_deque[-1].header.stamp.to_sec() < frame_time:
+            print("Image Front Failed to Sync")
             return False
         if len(self.puppet_arm_left_deque) == 0 or self.puppet_arm_left_deque[-1].header.stamp.to_sec() < frame_time:
             return False
@@ -548,17 +552,43 @@ class RosOperator:
         if self.args.use_robot_base and (len(self.robot_base_deque) == 0 or self.robot_base_deque[-1].header.stamp.to_sec() < frame_time):
             return False
 
-        while self.img_left_deque[0].header.stamp.to_sec() < frame_time:
+        """ while self.img_left_deque[0].header.stamp.to_sec() < frame_time:
             self.img_left_deque.popleft()
         img_left = self.bridge.imgmsg_to_cv2(self.img_left_deque.popleft(), 'passthrough')
 
         while self.img_right_deque[0].header.stamp.to_sec() < frame_time:
             self.img_right_deque.popleft()
+        img_right = self.bridge.imgmsg_to_cv2(self.img_right_deque.popleft(), 'passthrough') """
+
+        """ while self.img_front_deque[0].header.stamp.to_sec() < frame_time:
+            self.img_front_deque.popleft()
+        img_front = self.bridge.imgmsg_to_cv2(self.img_front_deque.popleft(), 'passthrough') """
+
+        while self.img_left_deque[0].header.stamp.to_sec() < frame_time:
+            self.img_left_deque.popleft()
+        img_left = self.bridge.imgmsg_to_cv2(self.img_left_deque.popleft(), 'passthrough')
+        img_left = cv2.cvtColor(img_left, cv2.COLOR_BGR2RGB)
+        # Resize the image to 480x640
+        img_left = cv2.resize(img_left, (640, 480), interpolation=cv2.INTER_AREA)
+        # Ensure the image has exactly 3 channels
+        if img_left.shape[2] > 3:
+            img_left = img_left[:, :, :3]
+
+        while self.img_right_deque[0].header.stamp.to_sec() < frame_time:
+            self.img_right_deque.popleft()
         img_right = self.bridge.imgmsg_to_cv2(self.img_right_deque.popleft(), 'passthrough')
+        img_right = cv2.cvtColor(img_right, cv2.COLOR_BGR2RGB)
+        img_right = cv2.resize(img_right, (640, 480), interpolation=cv2.INTER_AREA)
+        if img_right.shape[2] > 3:
+            img_right = img_right[:, :, :3]
 
         while self.img_front_deque[0].header.stamp.to_sec() < frame_time:
             self.img_front_deque.popleft()
         img_front = self.bridge.imgmsg_to_cv2(self.img_front_deque.popleft(), 'passthrough')
+        img_front = cv2.cvtColor(img_front, cv2.COLOR_BGR2RGB)
+        img_front = cv2.resize(img_front, (640, 480), interpolation=cv2.INTER_AREA)
+        if img_front.shape[2] > 3:
+            img_front = img_front[:, :, :3]
 
         while self.puppet_arm_left_deque[0].header.stamp.to_sec() < frame_time:
             self.puppet_arm_left_deque.popleft()
@@ -703,7 +733,7 @@ def get_arguments():
     parser.add_argument('--pre_norm', action='store_true', required=False)
 
     parser.add_argument('--img_front_topic', action='store', type=str, help='img_front_topic',
-                        default='/camera_f/color/image_raw', required=False)
+                        default='/zed/zed_node/rgb_raw/image_raw_color', required=False)
     parser.add_argument('--img_left_topic', action='store', type=str, help='img_left_topic',
                         default='/camera_l/color/image_raw', required=False)
     parser.add_argument('--img_right_topic', action='store', type=str, help='img_right_topic',
@@ -731,8 +761,15 @@ def get_arguments():
                         default='/cmd_vel', required=False)
     parser.add_argument('--use_robot_base', action='store', type=bool, help='use_robot_base',
                         default=False, required=False)
+    parser.add_argument('--use_audio', action='store', type=bool, help='use_robot_base',
+                        default=False, required=False)
+    parser.add_argument('--audio_left', action='store', type=str, help='audio_left_topic',
+                        default='/audio/audio', required=False)
+    parser.add_argument('--audio_right', action='store', type=str, help='audio_right_topic',
+                        default='/camera_r/depth/image_raw', required=False)
+
     parser.add_argument('--publish_rate', action='store', type=int, help='publish_rate',
-                        default=40, required=False)
+                        default=30, required=False)
     parser.add_argument('--pos_lookahead_step', action='store', type=int, help='pos_lookahead_step',
                         default=0, required=False)
     parser.add_argument('--chunk_size', action='store', type=int, help='chunk_size',

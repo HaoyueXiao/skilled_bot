@@ -1,0 +1,22 @@
+# config.yaml
+model_name: 'ast'
+pretrained: False
+max_length: 200
+num_mel_bins: 64
+global_pool: ''
+feature_aggregation: null
+transforms:
+  - _target_: torchaudio.transforms.Resample
+    orig_freq: 48000
+    new_freq: 16000
+mask_robot: False
+downsample_ratio: 32
+use_group_norm: True
+share_audio_model: False
+norm_spec:
+  is_norm: True
+  mean: -6.5
+  std: 4.7
+  min: -16.0
+  max: 10.6
+  stats_dir: ${multi_run.run_dir}

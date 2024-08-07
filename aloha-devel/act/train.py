@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from utils import load_data 
 from utils import compute_dict_mean, set_seed, detach_dict
-from policy import ACTPolicy, CNNMLPPolicy, DiffusionPolicy
+from policy import ACTPolicy, CNNMLPPolicy
 
 import sys
 sys.path.append("./")

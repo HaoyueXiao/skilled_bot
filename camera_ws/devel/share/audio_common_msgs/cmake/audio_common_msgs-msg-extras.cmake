@@ -1,0 +1,2 @@
+set(audio_common_msgs_MESSAGE_FILES "/home/jianrenw/Documents/skilled/cobot_magic/camera_ws/src/audio_common/audio_common_msgs/msg/AudioData.msg;/home/jianrenw/Documents/skilled/cobot_magic/camera_ws/src/audio_common/audio_common_msgs/msg/AudioDataStamped.msg;/home/jianrenw/Documents/skilled/cobot_magic/camera_ws/src/audio_common/audio_common_msgs/msg/AudioInfo.msg")
+set(audio_common_msgs_SERVICE_FILES "")

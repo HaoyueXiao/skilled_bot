@@ -1,0 +1,3 @@
+Requirement already satisfied: pip in /home/jianrenw/.local/lib/python3.8/site-packages (24.1.2)
+Requirement already satisfied: install in /home/jianrenw/anaconda3/envs/aloha/lib/python3.8/site-packages (1.3.5)
+Requirement already satisfied: psutil in /home/jianrenw/anaconda3/envs/aloha/lib/python3.8/site-packages (6.0.0)

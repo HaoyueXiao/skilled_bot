@@ -1,0 +1,5 @@
+audio_capture:
+  device: "plughw:3,0"  # Microphone device identifier
+  rate: 16000           # Sample rate in Hz
+  channels: 1           # Number of audio channels (1 for mono, 2 for stereo)
+  format: "S16LE"       # Audio format (e.g., S16LE for 16-bit PCM)

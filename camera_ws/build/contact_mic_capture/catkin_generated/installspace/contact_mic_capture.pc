@@ -1,0 +1,8 @@
+prefix=/home/jianrenw/Documents/skilled/cobot_magic/camera_ws/install
+
+Name: contact_mic_capture
+Description: Description of contact_mic_capture
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
